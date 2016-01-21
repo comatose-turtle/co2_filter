@@ -8,8 +8,4 @@ describe Co2Filter do
   it 'does something useful' do
     expect(Co2Filter.DoesSomethingUseful).to eq(true)
   end
-
-  it 'returns helpful recommendation results' do
-    expect(false).to be_truthy
-  end
 end
