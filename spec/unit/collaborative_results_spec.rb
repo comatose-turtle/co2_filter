@@ -7,6 +7,54 @@ describe Co2Filter::Collaborative::Results do
 
   let(:results){Co2Filter::Collaborative::Results.new(@rating_sums)}
 
+  context '#keys' do
+    it 'returns the keys to the input hash' do
+      @rating_sums = {
+        1 => 1,
+        3 => 0,
+        10 => 3,
+        11 => 2,
+        15 => -2
+      }
+      expect(results.keys.sort).to eq(@rating_sums.keys.sort)
+    end
+  end
+
+  context '#values' do
+    it 'returns the values to the input hash' do
+      @rating_sums = {
+        1 => 1,
+        3 => 0,
+        10 => 3,
+        11 => 2,
+        15 => -2
+      }
+      expect(results.values.sort).to eq(@rating_sums.values.sort)
+    end
+  end
+
+  context '[]' do
+    before(:each) {
+      @rating_sums = {
+        1 => 1,
+        3 => 0,
+        10 => 3,
+        11 => 2,
+        15 => -2
+      }
+    }
+
+    it 'can be get' do
+      expect(results[10]).to eq(3)
+    end
+
+    it 'can be set' do
+      expect(results[11]).to eq(2)
+      results[11] = 50
+      expect(results[11]).to eq(50)
+    end
+  end
+
   context '#ids_by_rating' do
     it 'exists' do
       expect(results.respond_to?(:ids_by_rating)).to be_truthy
