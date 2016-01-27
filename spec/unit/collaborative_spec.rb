@@ -88,7 +88,7 @@ describe Co2Filter::Collaborative do
 
   context '#filter' do
     it 'translates a set of data into recommendation results' do
-      result = Co2Filter::Collaborative.filter(user1, other_users)
+      result = Co2Filter::Collaborative.filter(current_user: user1, other_users: other_users)
       expect(result).to be_a(Co2Filter::Collaborative::Results)
       expect(result.ids_by_rating).to eq([8, 7, 6])
     end
@@ -199,7 +199,7 @@ describe Co2Filter::Collaborative do
 
   context '#cosine' do
     def subject(n)
-      Co2Filter::Collaborative.mean_centered_cosine(user1, other_users, n)
+      Co2Filter::Collaborative.mean_centered_cosine(current_user: user1, other_users: other_users, num_nearest: n)
     end
 
     it 'returns the n nearest (or farthest) users' do

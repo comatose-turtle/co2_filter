@@ -1,8 +1,8 @@
 module Co2Filter::Collaborative
   autoload :Results, 'co2_filter/collaborative/results'
 
-  def self.filter(current_user, users)
-    processed_users = mean_centered_cosine(current_user, users, 20)
+  def self.filter(current_user:, other_users:)
+    processed_users = mean_centered_cosine(current_user: current_user, other_users: other_users, num_nearest: 30)
     new_items = []
     processed_users.each do |user_id, user|
       new_items = new_items | (user[:ratings].keys - current_user.keys)
@@ -24,9 +24,9 @@ module Co2Filter::Collaborative
     Results.new(item_ratings)
   end
 
-  def self.mean_centered_cosine(user1, others, num_nearest)
-    processed = others.map do |key, user2|
-      [key, single_cosine(user1, user2)]
+  def self.mean_centered_cosine(current_user:, other_users:, num_nearest:)
+    processed = other_users.map do |key, user2|
+      [key, single_cosine(current_user, user2)]
     end
     processed.sort_by do |entry|
       -(entry[1][:coefficient].abs)
