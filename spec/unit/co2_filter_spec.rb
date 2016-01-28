@@ -179,25 +179,25 @@ describe Co2Filter do
     }
 
     it 'should call the collaborative filter' do
-      allow(Co2Filter::Collaborative).to receive(:filter) {{}}
+      allow(Co2Filter::Collaborative).to receive(:filter) {Co2Filter::Collaborative::Results.new({})}
       Co2Filter.filter(current_user: user1, other_users: other_users, items: items)
       expect(Co2Filter::Collaborative).to have_received(:filter)
     end
 
     it 'should call the content-based filter' do
-      allow(Co2Filter::ContentBased).to receive(:filter) {{}}
+      allow(Co2Filter::ContentBased).to receive(:filter) {Co2Filter::ContentBased::Results.new({})}
       Co2Filter.filter(current_user: user1, other_users: other_users, items: items)
       expect(Co2Filter::ContentBased).to have_received(:filter)
     end
 
     it 'should call the ratings_to_profile convertor if no profile was provided' do
-      allow(Co2Filter::ContentBased).to receive(:ratings_to_profile) {{}}
+      allow(Co2Filter::ContentBased).to receive(:ratings_to_profile) {Co2Filter::ContentBased::Results.new({})}
       Co2Filter.filter(current_user: user1, other_users: other_users, items: items)
       expect(Co2Filter::ContentBased).to have_received(:ratings_to_profile)
     end
 
     it 'should not call the ratings_to_profile convertor if a user_profile was provided' do
-      allow(Co2Filter::ContentBased).to receive(:ratings_to_profile) {{}}
+      allow(Co2Filter::ContentBased).to receive(:ratings_to_profile) {Co2Filter::ContentBased::Results.new({})}
       user_profile = Co2Filter::ContentBased::UserProfile.new({1 => 1, 2 => 2})
       Co2Filter.filter(current_user: user1, other_users: other_users, items: items, user_profile: user_profile)
       expect(Co2Filter::ContentBased).not_to have_received(:ratings_to_profile)
@@ -211,11 +211,47 @@ describe Co2Filter do
       expect(result.keys.sort).to eq([1, 2, 3, 4, 5, 6, 7, 9, 10])
     end
 
-    it 'returns a multiplication of both filtering techniques' do
-      allow(Co2Filter::Collaborative).to receive(:filter) {Co2Filter::Collaborative::Results.new({1 => 1, 2 => 3, 3 => 4, 5 => 2, 9 => 1})}
-      allow(Co2Filter::ContentBased).to receive(:filter) {Co2Filter::ContentBased::Results.new({1 => 2, 2 => 4, 3 => 2, 5 => 5, 10 => 4})}
+    it 'double recommendation is a strong recommendation in the result' do
+      allow(Co2Filter::Collaborative).to receive(:filter) {Co2Filter::Collaborative::Results.new({1 => 1000, 2 => 1, 3 => -40})}
+      allow(Co2Filter::ContentBased).to receive(:filter) {Co2Filter::ContentBased::Results.new({1 => 2, 2 => 1, 3 => -1})}
       result = Co2Filter.filter(current_user: user1, other_users: other_users, items: items)
-      expect(result.to_hash).to eq({1 => 2, 2 => 12, 3 => 8, 5 => 10, 9 => 1, 10 => 4})
+      expect(result[1]).to be > 0.5
+      expect(result[1]).to be > result[2]
+      expect(result[1]).to be > result[3]
     end
+
+    it 'double disrecommendation is a strong disrecommendation in the result' do
+      allow(Co2Filter::Collaborative).to receive(:filter) {Co2Filter::Collaborative::Results.new({1 => -1000, 2 => -1, 3 => 40})}
+      allow(Co2Filter::ContentBased).to receive(:filter) {Co2Filter::ContentBased::Results.new({1 => -2, 2 => -1, 3 => 1})}
+      result = Co2Filter.filter(current_user: user1, other_users: other_users, items: items)
+      expect(result[1]).to be < -0.5
+      expect(result[1]).to be < result[2]
+      expect(result[1]).to be < result[3]
+    end
+
+    it 'strong recommendation and weak disrecommendation is a weak recommendation in the result' do
+      allow(Co2Filter::Collaborative).to receive(:filter) {Co2Filter::Collaborative::Results.new({1 => 1000, 2 => 1, 3 => -40})}
+      allow(Co2Filter::ContentBased).to receive(:filter) {Co2Filter::ContentBased::Results.new({1 => -1, 2 => 2, 3 => -1})}
+      result = Co2Filter.filter(current_user: user1, other_users: other_users, items: items)
+      expect(result[1]).to be > 0
+      expect(result[1]).to be < result[2]
+      expect(result[1]).to be > result[3]
+    end
+
+    it 'strong disrecommendation and weak recommendation is a weak disrecommendation in the result' do
+      allow(Co2Filter::Collaborative).to receive(:filter) {Co2Filter::Collaborative::Results.new({1 => -1000, 2 => -1, 3 => 40})}
+      allow(Co2Filter::ContentBased).to receive(:filter) {Co2Filter::ContentBased::Results.new({1 => 1, 2 => -2, 3 => 1})}
+      result = Co2Filter.filter(current_user: user1, other_users: other_users, items: items)
+      expect(result[1]).to be < 0
+      expect(result[1]).to be > result[2]
+      expect(result[1]).to be < result[3]
+    end
+
+    # it 'returns a multiplication of both filtering techniques' do
+    #   allow(Co2Filter::Collaborative).to receive(:filter) {Co2Filter::Collaborative::Results.new({1 => 1, 2 => 3, 3 => 4, 5 => 2, 9 => 1})}
+    #   allow(Co2Filter::ContentBased).to receive(:filter) {Co2Filter::ContentBased::Results.new({1 => 2, 2 => 4, 3 => 2, 5 => 5, 10 => 4})}
+    #   result = Co2Filter.filter(current_user: user1, other_users: other_users, items: items)
+    #   expect(result.to_hash).to eq({1 => 2, 2 => 12, 3 => 8, 5 => 10, 9 => 1, 10 => 4})
+    # end
   end
 end

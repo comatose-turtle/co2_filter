@@ -6,8 +6,12 @@ module Co2Filter
     else
       content = ContentBased.filter(user: current_user, items: items)
     end
+
+    collab.normalize!
+    content.normalize!
+
     hybrid = collab.merge(content) do |k, val1, val2|
-      val1 * val2
+      val1 + val2
     end
     Results.new(hybrid)
   end

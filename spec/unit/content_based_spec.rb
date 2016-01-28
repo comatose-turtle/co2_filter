@@ -108,22 +108,10 @@ describe Co2Filter::ContentBased do
     it 'turns a list of item ratings into a list of attribute ratings (user profile)' do
       result = Co2Filter::ContentBased.ratings_to_profile(user_ratings: user_ratings, items: items)
       expect(result).to be_a(Co2Filter::ContentBased::UserProfile)
-      expect(result.to_hash).to include({
-          1 => 4.3,
-          2 => 10.5,
-          3 => 5.2,
-          4 => 3.8,
-          5 => 7.15,
-          6 => 8.0,
-          7 => 2.5,
-          8 => 2.5,
-          9 => 7.5,
-          10 => 2.5,
-          11 => 5.5,
-          12 => 3.7,
-          13 => 2.5,
-          14 => 2.5
-        })
+      expect(result[2]).to eq(result.values.max)
+      expect(result[6]).to eq(result.values.sort[-2])
+      expect(result[7]).to eq(result.values.min)
+      expect(result[14]).to eq(result.values.min)
     end
   end
 end
