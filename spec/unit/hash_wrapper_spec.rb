@@ -103,32 +103,4 @@ describe Co2Filter::HashWrapper do
       end
     end
   end
-
-  context '#normalize!' do
-    it 'reduces all values to an absolute value <= 1' do
-      @data = {
-        1 => 100,
-        2 => -25,
-        3 => 0,
-        4 => 50,
-        5 => 67,
-        6 => -40,
-        7 => 20,
-        8 => 100,
-        9 => 95
-      }
-      data_dup = @data.clone
-      results.normalize!
-      scale = results[1] / data_dup[1]
-      results.each do |key, val|
-        expect(val).to be <= 1.0
-        expect(val).to be_within(0.001).of(data_dup[key] * scale)
-      end
-    end
-
-    it 'does nothing if the input is an empty hash' do
-      @data = {}
-      expect{results.normalize!}.to_not raise_error
-    end
-  end
 end

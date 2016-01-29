@@ -212,7 +212,7 @@ describe Co2Filter do
     end
 
     it 'double recommendation is a strong recommendation in the result' do
-      allow(Co2Filter::Collaborative).to receive(:filter) {Co2Filter::Collaborative::Results.new({1 => 1000, 2 => 1, 3 => -40})}
+      allow(Co2Filter::Collaborative).to receive(:filter) {Co2Filter::Collaborative::Results.new({1 => 10, 2 => 1, 3 => -4})}
       allow(Co2Filter::ContentBased).to receive(:filter) {Co2Filter::ContentBased::Results.new({1 => 2, 2 => 1, 3 => -1})}
       result = Co2Filter.filter(current_user: user1, other_users: other_users, items: items)
       expect(result[1]).to be > 0.5
@@ -221,7 +221,7 @@ describe Co2Filter do
     end
 
     it 'double disrecommendation is a strong disrecommendation in the result' do
-      allow(Co2Filter::Collaborative).to receive(:filter) {Co2Filter::Collaborative::Results.new({1 => -1000, 2 => -1, 3 => 40})}
+      allow(Co2Filter::Collaborative).to receive(:filter) {Co2Filter::Collaborative::Results.new({1 => -10, 2 => -1, 3 => 4})}
       allow(Co2Filter::ContentBased).to receive(:filter) {Co2Filter::ContentBased::Results.new({1 => -2, 2 => -1, 3 => 1})}
       result = Co2Filter.filter(current_user: user1, other_users: other_users, items: items)
       expect(result[1]).to be < -0.5
@@ -230,7 +230,7 @@ describe Co2Filter do
     end
 
     it 'strong recommendation and weak disrecommendation is a weak recommendation in the result' do
-      allow(Co2Filter::Collaborative).to receive(:filter) {Co2Filter::Collaborative::Results.new({1 => 1000, 2 => 1, 3 => -40})}
+      allow(Co2Filter::Collaborative).to receive(:filter) {Co2Filter::Collaborative::Results.new({1 => 10, 2 => 10, 3 => -4})}
       allow(Co2Filter::ContentBased).to receive(:filter) {Co2Filter::ContentBased::Results.new({1 => -1, 2 => 2, 3 => -1})}
       result = Co2Filter.filter(current_user: user1, other_users: other_users, items: items)
       expect(result[1]).to be > 0
@@ -239,7 +239,7 @@ describe Co2Filter do
     end
 
     it 'strong disrecommendation and weak recommendation is a weak disrecommendation in the result' do
-      allow(Co2Filter::Collaborative).to receive(:filter) {Co2Filter::Collaborative::Results.new({1 => -1000, 2 => -1, 3 => 40})}
+      allow(Co2Filter::Collaborative).to receive(:filter) {Co2Filter::Collaborative::Results.new({1 => -10, 2 => -10, 3 => 4})}
       allow(Co2Filter::ContentBased).to receive(:filter) {Co2Filter::ContentBased::Results.new({1 => 1, 2 => -2, 3 => 1})}
       result = Co2Filter.filter(current_user: user1, other_users: other_users, items: items)
       expect(result[1]).to be < 0
