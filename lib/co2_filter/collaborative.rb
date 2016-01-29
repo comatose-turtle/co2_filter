@@ -48,8 +48,8 @@ module Co2Filter::Collaborative
         sum2 += user2[key]
       end
     end
-    mean1 = sum1 / user1.length
-    mean2 = sum2 / user2.length
+    mean1 = user1.length == 0 ? 0 : sum1 / user1.length
+    mean2 = user2.length == 0 ? 0 : sum2 / user2.length
 
     numerator = 0
     denominator1 = 0

@@ -246,12 +246,5 @@ describe Co2Filter do
       expect(result[1]).to be > result[2]
       expect(result[1]).to be < result[3]
     end
-
-    # it 'returns a multiplication of both filtering techniques' do
-    #   allow(Co2Filter::Collaborative).to receive(:filter) {Co2Filter::Collaborative::Results.new({1 => 1, 2 => 3, 3 => 4, 5 => 2, 9 => 1})}
-    #   allow(Co2Filter::ContentBased).to receive(:filter) {Co2Filter::ContentBased::Results.new({1 => 2, 2 => 4, 3 => 2, 5 => 5, 10 => 4})}
-    #   result = Co2Filter.filter(current_user: user1, other_users: other_users, items: items)
-    #   expect(result.to_hash).to eq({1 => 2, 2 => 12, 3 => 8, 5 => 10, 9 => 1, 10 => 4})
-    # end
   end
 end
