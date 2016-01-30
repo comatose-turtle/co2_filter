@@ -191,14 +191,14 @@ describe Co2Filter do
     end
 
     it 'should call the ratings_to_profile convertor if no profile was provided' do
-      allow(Co2Filter::ContentBased).to receive(:ratings_to_profile) {Co2Filter::ContentBased::Results.new({})}
+      allow(Co2Filter::ContentBased).to receive(:ratings_to_profile) {Co2Filter::ContentBased::UserProfile.new({1 => 1, 2 => 2}, 0)}
       Co2Filter.filter(current_user: user1, other_users: other_users, items: items)
       expect(Co2Filter::ContentBased).to have_received(:ratings_to_profile)
     end
 
     it 'should not call the ratings_to_profile convertor if a user_profile was provided' do
-      allow(Co2Filter::ContentBased).to receive(:ratings_to_profile) {Co2Filter::ContentBased::Results.new({})}
-      user_profile = Co2Filter::ContentBased::UserProfile.new({1 => 1, 2 => 2})
+      allow(Co2Filter::ContentBased).to receive(:ratings_to_profile) {Co2Filter::ContentBased::UserProfile.new({1 => 3, 2 => 4}, 5)}
+      user_profile = Co2Filter::ContentBased::UserProfile.new({1 => 1, 2 => 2}, 0)
       Co2Filter.filter(current_user: user1, other_users: other_users, items: items, user_profile: user_profile)
       expect(Co2Filter::ContentBased).not_to have_received(:ratings_to_profile)
     end

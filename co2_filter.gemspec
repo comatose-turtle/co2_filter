@@ -11,16 +11,13 @@ Gem::Specification.new do |s|
   s.version     = Co2Filter::VERSION
   s.authors     = ["Tommy Orr"]
   s.email       = ["torr@pivotal.io"]
-  s.homepage    = ""
+  s.homepage    = "https://github.com/comatose-turtle/co2_filter"
   s.summary     = %q{Uses both collaborative and content-based filtering methods to enable a complex, hybrid recommendation engine.}
   # s.description = "TODO: Description of Co2Filter."
   s.license     = "MIT"
 
   s.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.rdoc"]
 
-  s.add_dependency "rails", "~> 4.0"
-
-  s.add_development_dependency "sqlite3"
   s.add_development_dependency "bundler", "~> 1.11"
   s.add_development_dependency "rake", "~> 10.0"
   s.add_development_dependency "rspec", "~> 3.0"

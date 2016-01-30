@@ -2,6 +2,7 @@ module Co2Filter::Collaborative
   autoload :Results, 'co2_filter/collaborative/results'
 
   def self.filter(current_user:, other_users:)
+    current_user = Co2Filter::RatingSet.new(current_user) unless current_user.is_a? Co2Filter::RatingSet
     processed_users = mean_centered_cosine(current_user: current_user, other_users: other_users, num_nearest: 30)
     new_items = []
     processed_users.each do |user_id, user|
@@ -18,7 +19,7 @@ module Co2Filter::Collaborative
         rating_influence_total += user[:coefficient] * (user[:ratings][item_id] - user[:mean])
         weight_normal += user[:coefficient].abs
       end
-      item_ratings[item_id] = rating_influence_total / weight_normal if weight_normal > 0
+      item_ratings[item_id] = current_user.mean + rating_influence_total / weight_normal if weight_normal > 0
     end
 
     Results.new(item_ratings)
@@ -26,6 +27,7 @@ module Co2Filter::Collaborative
 
   def self.mean_centered_cosine(current_user:, other_users:, num_nearest:)
     processed = other_users.map do |key, user2|
+      user2 = Co2Filter::RatingSet.new(user2) unless user2.is_a? Co2Filter::RatingSet
       [key, single_cosine(current_user, user2)]
     end
     processed.sort_by do |entry|

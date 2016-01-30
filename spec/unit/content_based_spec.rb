@@ -13,7 +13,7 @@ describe Co2Filter::ContentBased do
       8 => 0.5,
       9 => 3,
       10 => 2
-    })
+    }, 5)
   }
   let(:user_ratings) {
     Co2Filter::RatingSet.new({

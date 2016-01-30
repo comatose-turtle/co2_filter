@@ -19,6 +19,7 @@ module Co2Filter::ContentBased
         strength_normalizer += strength.abs if user_profile[attr_id]
       end
       hash[item_id] /= strength_normalizer if strength_normalizer != 0
+      hash[item_id] += user_profile.mean
       hash
     end
     Results.new(results)
@@ -43,6 +44,6 @@ module Co2Filter::ContentBased
       user_prefs[attr_id] /= strength_normalizers[attr_id].to_f
     end
 
-    UserProfile.new(user_prefs)
+    UserProfile.new(user_prefs, user_ratings.mean)
   end
 end

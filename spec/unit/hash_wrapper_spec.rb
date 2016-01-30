@@ -33,6 +33,20 @@ describe Co2Filter::HashWrapper do
     end
   end
 
+  context '#length' do
+    it 'returns the length of the input hash' do
+      @data = {
+        1 => 1,
+        3 => 0,
+        10 => 3,
+        11 => 2,
+        15 => -2
+      }
+      expect(results.length).to eq(@data.length)
+      expect(results.size).to eq(@data.length)
+    end
+  end
+
   context '[]' do
     before(:each) {
       @data = {
