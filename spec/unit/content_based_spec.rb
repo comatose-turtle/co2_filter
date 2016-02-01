@@ -105,10 +105,6 @@ describe Co2Filter::ContentBased do
   end
 
   context '#ratings_to_profile' do
-    it 'should error if not passed a RatingSet' do
-      expect{Co2Filter::ContentBased.ratings_to_profile(user_ratings: {100 => 2}, items: items)}.to raise_error(ArgumentError)
-    end
-
     it 'turns a list of item ratings into a list of attribute ratings (user profile)' do
       result = Co2Filter::ContentBased.ratings_to_profile(user_ratings: user_ratings, items: items)
       expect(result).to be_a(Co2Filter::ContentBased::UserProfile)

@@ -1,37 +1,85 @@
 = co2_filter
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file <code>lib/co2_filter</code>. To experiment with that code, run <code>bin/console</code> for an interactive prompt.
+Co2Filter is a combination Collaborative and Content-based filtering gem, with optional access to key points in the logic chain for adding your own calculations or storing them for later.
 
-TODO: Delete this and the text above, and describe your gem
+Collaborative filtering recommends based on the ratings of other users and their similarity to you.
+Content-based filtering recommends based on the attributes of items and your opinions of them.
+
+Both strategies will return a predicted rating for each item still unrated.  They can each be used alone with this gem, but they can also be combined via an averaging of the predicted user ratings.
+
+Rating ranges are irrelevant to the algorithm, as rating averages are the key point of reference.  Feel free to use whatever works best for your app.  (But be warned that this means there is a chance of predicting slightly outside of the actual range.)
 
 == Installation
 
 Add this line to your application's Gemfile:
 
-    gem 'co2_filter'
+    gem 'co2_filter', git: 'https://github.com/comatose-turtle/co2_filter.git'
 
 And then execute:
 
     $ bundle
 
-Or install it yourself as:
-
-    $ gem install co2_filter
-
 == Usage
 
-TODO: Write usage instructions here
+The most basic usage follows this pattern:
+    recommended = Co2Filter.filter(current_user: current_user, other_users: other_users, items: items)
 
-== Development
+And the results can be used as follows:
 
-After checking out the repo, run <code>bin/setup</code> to install dependencies. Then, run <code>rake spec</code> to run the tests. You can also run <code>bin/console</code> for an interactive prompt that will allow you to experiment.
+    most_recommended_item_id = recommended.ids_by_rating.first
+    top_20_recommended_items = recommended.ids_by_rating.take(20)
+    predicted_user_rating = recommended[most_recommended_item_id]
 
-To install this gem onto your local machine, run <code>bundle exec rake install</code>. To release a new version, update the version number in <code>version.rb</code>, and then run <code>bundle exec rake release</code>, which will create a git tag for the version, push git commits and tags, and push the <code>.gem</code> file to https://rubygems.org.
+This gem is ORM-agnostic and expects you to select your relevant data on your own.  The data you pass in should look like:
+    current_user = {
+        # item_id => rating
+        'item1' => 5,
+        'item2' => 1,
+        'item3' => 3
+        # ...
+    }
+
+    other_users = {
+        # user_id => { item_id => rating }
+        'user1' => {
+            'item1' => 2,
+            'item2' => 5,
+            'item4' => 2
+        },
+        'user2' => {
+            'item1' => 5,
+            'item2' => 1,
+            'item4' => 5,
+            'item5' => 1
+        }
+        # ...
+    }
+
+    items = {
+        # item_id => { attribute_id => strength }
+    }
+
+Ids are arbitrary to the algorithm and can be strings as easily as numbers.  Ratings and strengths should be numbers of some type, and the range should be consistent across rating types (i.e. item ratings, attribute strengths), but there is no range restriction enforced by the algorithm.
+
+Attribute strength refers to a situation where attributes are applied in varying degrees rather than a simple "off" or "on" state.  If this does not apply to your app, I suggest setting all strengths to 1.
+
+To implement only the collaborative filter, just use:
+    Co2Filter::Collaborative.filter(current_user: current_user, other_users: other_users)
+
+To implement only the content-based filter, just use:
+    Co2Filter::ContentBased.filter(user: current_user, items: items)
+
+The content-based filtering process consists of two steps:
+1) Constructing a user profile
+2) Using the user profile to determine recommendations
+
+If you are interested in doing this process piecemeal (for instance, to save the user profile to the database for later use), you can:
+    user_profile = Co2Filter::ContentBased.ratings_to_profile(user_ratings: current_user, items: items)
+    Co2Filter::ContentBased.filter(user: user_profile, items: items)
 
 == Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/comatose-turtle/co2_filter. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the {Contributor Covenant}[http://contributor-covenant.org] code of conduct.
-
 
 == License
 

@@ -26,7 +26,7 @@ module Co2Filter::ContentBased
   end
 
   def self.ratings_to_profile(user_ratings:, items:)
-    throw ArgumentError.new("user_ratings must be of type Co2Filter::RatingSet") unless user_ratings.is_a? Co2Filter::RatingSet
+    user_ratings = Co2Filter::RatingSet.new(user_ratings) unless user_ratings.is_a? Co2Filter::RatingSet
     user_prefs = {}
     strength_normalizers = {}
     user_ratings.each do |item_id, score|
