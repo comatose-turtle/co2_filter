@@ -114,4 +114,34 @@ describe Co2Filter::ContentBased do
       expect(result[14]).to eq(result.values.min)
     end
   end
+
+  context '#boost_ratings' do
+    let(:users) {
+      {
+        1 => {
+          101 => 2.0,
+          103 => 3.0,
+          104 => 2.0,
+          106 => 5.0
+        },
+        2 => {
+          100 => 1.0,
+          103 => 4.7,
+          105 => 2.2,
+          106 => 1.0
+        }
+      }
+    }
+    it 'fills in missing ratings with predictions' do
+      result = Co2Filter::ContentBased.boost_ratings(users: users, items: items)
+      expect(result[1].keys.sort).to eq(items.keys.sort)
+      expect(result[2].keys.sort).to eq(items.keys.sort)
+    end
+
+    it 'runs the ContentBased filter for each user' do
+      allow(Co2Filter::ContentBased).to receive(:filter) {Co2Filter::ContentBased::Results.new({1 => 2, 2 => 1, 3 => -1})}
+      Co2Filter::ContentBased.boost_ratings(users: users, items: items)
+      expect(Co2Filter::ContentBased).to have_received(:filter).exactly(users.length).times
+    end
+  end
 end

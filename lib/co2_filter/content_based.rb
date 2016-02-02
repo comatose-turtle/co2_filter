@@ -46,4 +46,11 @@ module Co2Filter::ContentBased
 
     UserProfile.new(user_prefs, user_ratings.mean)
   end
+
+  def self.boost_ratings(users:, items:)
+    users.inject({}) do |content_boosted_users, (user_id, ratings)|
+      content_boosted_users[user_id] = ratings.merge(filter(user: ratings, items: items))
+      content_boosted_users
+    end
+  end
 end

@@ -5,7 +5,9 @@ Co2Filter is a combination Collaborative and Content-based filtering gem, with o
 Collaborative filtering recommends based on the ratings of other users and their similarity to you.
 Content-based filtering recommends based on the attributes of items and your opinions of them.
 
-Both strategies will return a predicted rating for each item still unrated.  They can each be used alone with this gem, but they can also be combined via an averaging of the predicted user ratings.
+Both strategies will return a predicted rating for each item still unrated.  They can each be used alone with this gem, but they can also be combined via either an averaging of the two predicted user ratings or the content-boosted collaborative filtering technique.
+
+Content-boosted collaborative filtering first applies content-based filtering to fill out a sparse user rating set, then applies collaborative filtering on the resulting dense data.
 
 Rating ranges are irrelevant to the algorithm, as rating averages are the key point of reference.  Feel free to use whatever works best for your app.  (But be warned that this means there is a chance of predicting slightly outside of the actual range.)
 
@@ -29,6 +31,8 @@ And the results can be used as follows:
     most_recommended_item_id = recommended.ids_by_rating.first
     top_20_recommended_items = recommended.ids_by_rating.take(20)
     predicted_user_rating = recommended[most_recommended_item_id]
+
+The return type is a simple wrapper for a results hash.  You can extract the inner hash if necessary with +to_hash+.
 
 This gem is ORM-agnostic and expects you to select your relevant data on your own.  The data you pass in should look like:
     current_user = {
@@ -64,19 +68,31 @@ Ids are arbitrary to the algorithm and can be strings as easily as numbers.  Rat
 
 Attribute strength refers to a situation where attributes are applied in varying degrees rather than a simple "off" or "on" state.  If this does not apply to your app, I suggest setting all strengths to 1.
 
+=== Using Individual Filters
+
 To implement only the collaborative filter, just use:
     Co2Filter::Collaborative.filter(current_user: current_user, other_users: other_users)
 
-To implement only the content-based filter, just use:
+To implement only the content-based filter, use:
     Co2Filter::ContentBased.filter(user: current_user, items: items)
 
 The content-based filtering process consists of two steps:
-1) Constructing a user profile
-2) Using the user profile to determine recommendations
+1. Constructing a user profile
+2. Using the user profile to determine recommendations
 
-If you are interested in doing this process piecemeal (for instance, to save the user profile to the database for later use), you can:
+If you are interested in doing this process piecemeal (for instance, to save the user profile to the database for later use), you can do so:
     user_profile = Co2Filter::ContentBased.ratings_to_profile(user_ratings: current_user, items: items)
     Co2Filter::ContentBased.filter(user: user_profile, items: items)
+
+=== Content-Boosted Collaborative Filtering
+
+Content-boosted collaborative filtering can be used as follows:
+    Co2Filter.content_boosted_collaborative_filter(current_user: current_user, other_users: other_users, items: items)
+
+This is the most processor-intensive algorithm, but it too can be split up into multiple pieces if you wish:
+    boosted_users = Co2Filter::ContentBased.boost_ratings(users: other_users, items: items)
+    Co2Filter::Collaborative.filter(current_user: current_user, other_users: boosted_users)
+Note that the second step is simply the basic collaborative filter.  If you wish to break up the +boost_ratings+ method even further, then you are actually talking about using the +Co2Filter::ContentBased.filter+ on each of the users. (See the definition for +boost_ratings+.)
 
 == Contributing
 

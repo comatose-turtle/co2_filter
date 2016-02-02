@@ -18,10 +18,7 @@ module Co2Filter
   end
 
   def self.content_boosted_collaborative_filter(current_user:, other_users:, items:)
-    content_boosted_users = {}
-    other_users.each do |user_id, ratings|
-      content_boosted_users[user_id] = ratings.merge(ContentBased.filter(user: ratings, items: items))
-    end
+    content_boosted_users = ContentBased.boost_ratings(users: other_users, items: items)
     results = Collaborative.filter(current_user: current_user, other_users: content_boosted_users)
     Results.new(results)
   end

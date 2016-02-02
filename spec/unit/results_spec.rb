@@ -9,6 +9,7 @@ describe Co2Filter::Results do
 
   context '#ids_by_rating' do
     it 'exists' do
+      @item_rankings = {}
       expect(results.respond_to?(:ids_by_rating)).to be_truthy
     end
 

@@ -262,7 +262,7 @@ describe Co2Filter do
     end
   end
 
-  context '#filter' do
+  context '#content_boosted_collaborative_filter' do
     let(:user1) {
       {
         1 => 5.0,
@@ -441,54 +441,21 @@ describe Co2Filter do
       expect(Co2Filter::Collaborative).to have_received(:filter)
     end
 
-    it 'should call the content-based filter' do
-      allow(Co2Filter::ContentBased).to receive(:filter) {Co2Filter::ContentBased::Results.new({})}
+    it 'should call the ratings booster' do
+      allow(Co2Filter::ContentBased).to receive(:boost_ratings) {{}}
       Co2Filter.content_boosted_collaborative_filter(current_user: user1, other_users: other_users, items: items)
-      expect(Co2Filter::ContentBased).to have_received(:filter).exactly(other_users.length).times
+      expect(Co2Filter::ContentBased).to have_received(:boost_ratings)
     end
 
-    # it 'returns a combination of both filtering techniques' do
-    #   allow(Co2Filter::Collaborative).to receive(:filter) {Co2Filter::Collaborative::Results.new({1 => 1, 2 => 3, 3 => 4, 5 => 2, 9 => 1})}
-    #   allow(Co2Filter::ContentBased).to receive(:filter) {Co2Filter::ContentBased::Results.new({1 => 2, 4 => 4, 6 => 2, 7 => 5, 10 => 4})}
-    #   result = Co2Filter.content_boosted_collaborative_filter(current_user: user1, other_users: other_users, items: items)
-    #   expect(result).to be_a(Co2Filter::Results)
-    #   expect(result.keys.sort).to eq([1, 2, 3, 4, 5, 6, 7, 9, 10])
-    # end
-
-    # it 'double recommendation is a strong recommendation in the result' do
-    #   allow(Co2Filter::Collaborative).to receive(:filter) {Co2Filter::Collaborative::Results.new({1 => 10, 2 => 1, 3 => -4})}
-    #   allow(Co2Filter::ContentBased).to receive(:filter) {Co2Filter::ContentBased::Results.new({1 => 2, 2 => 1, 3 => -1})}
-    #   result = Co2Filter.content_boosted_collaborative_filter(current_user: user1, other_users: other_users, items: items)
-    #   expect(result[1]).to be > 0.5
-    #   expect(result[1]).to be > result[2]
-    #   expect(result[1]).to be > result[3]
-    # end
-
-    # it 'double disrecommendation is a strong disrecommendation in the result' do
-    #   allow(Co2Filter::Collaborative).to receive(:filter) {Co2Filter::Collaborative::Results.new({1 => -10, 2 => -1, 3 => 4})}
-    #   allow(Co2Filter::ContentBased).to receive(:filter) {Co2Filter::ContentBased::Results.new({1 => -2, 2 => -1, 3 => 1})}
-    #   result = Co2Filter.content_boosted_collaborative_filter(current_user: user1, other_users: other_users, items: items)
-    #   expect(result[1]).to be < -0.5
-    #   expect(result[1]).to be < result[2]
-    #   expect(result[1]).to be < result[3]
-    # end
-
-    # it 'strong recommendation and weak disrecommendation is a weak recommendation in the result' do
-    #   allow(Co2Filter::Collaborative).to receive(:filter) {Co2Filter::Collaborative::Results.new({1 => 10, 2 => 10, 3 => -4})}
-    #   allow(Co2Filter::ContentBased).to receive(:filter) {Co2Filter::ContentBased::Results.new({1 => -1, 2 => 2, 3 => -1})}
-    #   result = Co2Filter.content_boosted_collaborative_filter(current_user: user1, other_users: other_users, items: items)
-    #   expect(result[1]).to be > 0
-    #   expect(result[1]).to be < result[2]
-    #   expect(result[1]).to be > result[3]
-    # end
-
-    # it 'strong disrecommendation and weak recommendation is a weak disrecommendation in the result' do
-    #   allow(Co2Filter::Collaborative).to receive(:filter) {Co2Filter::Collaborative::Results.new({1 => -10, 2 => -10, 3 => 4})}
-    #   allow(Co2Filter::ContentBased).to receive(:filter) {Co2Filter::ContentBased::Results.new({1 => 1, 2 => -2, 3 => 1})}
-    #   result = Co2Filter.content_boosted_collaborative_filter(current_user: user1, other_users: other_users, items: items)
-    #   expect(result[1]).to be < 0
-    #   expect(result[1]).to be > result[2]
-    #   expect(result[1]).to be < result[3]
-    # end
+    it 'returns the results of the collaborative filter' do
+      expected = {
+        123 => 1.0,
+        456 => 4.0,
+        789 => 2.5
+      }
+      allow(Co2Filter::Collaborative).to receive(:filter) {Co2Filter::Collaborative::Results.new(expected)}
+      result = Co2Filter.content_boosted_collaborative_filter(current_user: user1, other_users: other_users, items: items)
+      expect(result.to_hash).to eq(expected)
+    end
   end
 end

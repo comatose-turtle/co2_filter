@@ -7,6 +7,18 @@ describe Co2Filter::HashWrapper do
 
   let(:results){Co2Filter::HashWrapper.new(@data)}
 
+  context '#initialize' do
+    it 'converts the input to a hash' do
+      hashy = {1 => 2, 3 => 4}
+      @data = Co2Filter::HashWrapper.new(hashy)
+      expect(results.to_hash).to eq(hashy)
+    end
+
+    it 'errors if the input cannot be converted to a hash' do
+      expect{results}.to raise_error(NoMethodError)
+    end
+  end
+
   context '#keys' do
     it 'returns the keys to the input hash' do
       @data = {

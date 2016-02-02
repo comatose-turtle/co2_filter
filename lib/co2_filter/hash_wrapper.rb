@@ -1,6 +1,6 @@
 class Co2Filter::HashWrapper
   def initialize(data)
-    @data = data
+    @data = data.to_hash
   end
 
   def method_missing(method, *args, &block)
