@@ -55,6 +55,7 @@ This gem is ORM-agnostic and expects you to select your relevant data on your ow
         # ...
     }
 
+    # A set of all items from the dataset
     items = {
         # item_id => { attribute_id => strength }
     }
