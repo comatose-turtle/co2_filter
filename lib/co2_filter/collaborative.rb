@@ -1,9 +1,23 @@
 module Co2Filter::Collaborative
   autoload :Results, 'co2_filter/collaborative/results'
 
-  def self.filter(current_user:, other_users:)
+  def self.filter(current_user:, other_users:, measure: :hybrid)
     current_user = Co2Filter::RatingSet.new(current_user) unless current_user.is_a? Co2Filter::RatingSet
-    processed_users = mean_centered_cosine(current_user: current_user, other_users: other_users, num_nearest: 30)
+    if measure == :euclidean
+      processed_users = euclidean(current_user: current_user, other_users: other_users, num_nearest: 30)
+    elsif measure == :cosine
+      processed_users = mean_centered_cosine(current_user: current_user, other_users: other_users, num_nearest: 30)
+    else
+      eu = euclidean(current_user: current_user, other_users: other_users, num_nearest: 30)
+      co = mean_centered_cosine(current_user: current_user, other_users: other_users, num_nearest: 30)
+      processed_users = {}
+      eu.each do |user_id, user|
+        processed_users[user_id] = user.merge(co[user_id]) do |k, val1, val2|
+          k == :coefficient ? (val1 + val2) / 2.0 : val1
+        end
+      end
+    end
+
     new_items = []
     processed_users.each do |user_id, user|
       new_items = new_items | (user[:ratings].keys - current_user.keys)
@@ -68,6 +82,52 @@ module Co2Filter::Collaborative
       ratings: user2,
       mean: mean2,
       coefficient: (denominator1 * denominator2 == 0 ? 0 : numerator / Math.sqrt(denominator1 * denominator2))
+    }
+  end
+
+  def self.euclidean(current_user:, other_users:, num_nearest:, range:0)
+    if range == 0
+      lowest = nil
+      highest = nil
+      current_user.each do |k, rating|
+        lowest = rating if !lowest || lowest > rating
+        highest = rating if !highest || highest < rating
+      end
+      other_users.each do |k, user|
+        user.each do |k, rating|
+          lowest = rating if !lowest || lowest > rating
+          highest = rating if !highest || highest < rating
+        end
+      end
+      range = highest - lowest
+    end
+    processed = other_users.map do |key, user2|
+      user2 = Co2Filter::RatingSet.new(user2) unless user2.is_a? Co2Filter::RatingSet
+      [key, single_euclidean(current_user, user2, range)]
+    end
+    processed.sort_by do |entry|
+      -(entry[1][:coefficient])
+    end.take(num_nearest).inject({}) do |hash, (key, value)|
+      hash[key] = value
+      hash
+    end
+  end
+
+  def self.single_euclidean(user1, user2, range)
+    numerator = 0
+    denominator = 0
+    intersect = user1.keys & user2.keys
+    intersect.each do |item_id|
+      numerator += (user1[item_id] - user2[item_id]) ** 2
+      denominator += range ** 2
+    end
+    relevancy_weight = intersect.size < 50.0 ? intersect.size / 50.0 : 1
+    coefficient = relevancy_weight * (1 - ((1.0 * numerator / denominator)**(0.5)))
+    user2 = Co2Filter::RatingSet.new(user2) unless user2.is_a? Co2Filter::RatingSet
+    {
+        ratings: user2.to_hash,
+        mean: user2.mean,
+        coefficient: coefficient
     }
   end
 end
