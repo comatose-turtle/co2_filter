@@ -89,9 +89,9 @@ The content-based filtering process consists of two steps:
 If you are interested in doing this process piecemeal (for instance, to save the user profile to the database for later use), you can do so:
     user_profile = Co2Filter::ContentBased.ratings_to_profile(user_ratings: current_user, items: items)
     Co2Filter::ContentBased.filter(user: user_profile, items: items)
-Note that a +Co2Filter::ContentBased::UserProfile+ object like the one returned must be submitted as the user to trigger this shortcut.
+Note that a <tt>Co2Filter::ContentBased::UserProfile</tt> object like the one returned must be submitted as the user to trigger this shortcut.
 
-Separately run content-based filtering can be combined into the base (hybrid) filter by submitting the results (as a +Co2Filter::Results+ object) to the filter as follows:
+Separately run content-based filtering can be combined into the base (hybrid) filter by submitting the results (as a <tt>Co2Filter::Results</tt> object) to the filter as follows:
     recommended = Co2Filter.filter(current_user: current_user, other_users: other_users, content_based_results: content_based_results)
 
 === Content-Boosted Collaborative Filtering
@@ -102,7 +102,7 @@ Content-boosted collaborative filtering can be used as follows:
 This is the most processor-intensive algorithm, but it too can be split up into multiple pieces if you wish:
     boosted_users = Co2Filter::ContentBased.boost_ratings(users: other_users, items: items)
     Co2Filter::Collaborative.filter(current_user: current_user, other_users: boosted_users)
-Note that the second step is simply the basic collaborative filter.  If you wish to break up the +boost_ratings+ method even further, then you are actually talking about using the +Co2Filter::ContentBased.filter+ on each of the users. (See the definition for +boost_ratings+.)
+Note that the second step is simply the basic collaborative filter.  If you wish to break up the +boost_ratings+ method even further, then you are actually talking about using the <tt>Co2Filter::ContentBased.filter</tt> on each of the users. (See the definition for +boost_ratings+.)
 
 == Contributing
 
