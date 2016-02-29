@@ -15,7 +15,7 @@ Rating ranges are irrelevant to the algorithm, as rating averages are the key po
 
 Add this line to your application's Gemfile:
 
-    gem 'co2_filter', git: 'https://github.com/comatose-turtle/co2_filter.git'
+    gem 'co2_filter'
 
 And then execute:
 
@@ -73,6 +73,12 @@ Attribute strength refers to a situation where attributes are applied in varying
 To implement only the collaborative filter, just use:
     Co2Filter::Collaborative.filter(current_user: current_user, other_users: other_users)
 
+The collaborative filter accepts an argument that determines by what process users are determined to be similar, called +measure+:
+    Co2Filter::Collaborative.filter(current_user: current_user, other_users: other_users, measure: :euclidean)
+If is assigned to +:euclidean+, users will be considered similar based on the Euclidean distance of their rating sets.  This is a straight-forward comparison that makes sense to most people, but may overlook some subtleties.
+If assigned to +:cosine+, users' similarity is determined by a mean-based cosine coefficient.  This essentially means that the curve formed by users' rating sets is compared by shape to others'.  This technique is more reliable in some cases, but suffers considerably more in sparse data sets.
++:hybrid+ is the default measure, which represents an average of the above two measures.  Inherently, this makes it slower, but averaging may prove more reliable overall.  It may also smooth over the uniquely accurate aspects of each technique, lowering opportunities for a surprisingly good recommendation (or surprisingly bad).
+
 To implement only the content-based filter, use:
     Co2Filter::ContentBased.filter(user: current_user, items: items)
 
@@ -83,6 +89,10 @@ The content-based filtering process consists of two steps:
 If you are interested in doing this process piecemeal (for instance, to save the user profile to the database for later use), you can do so:
     user_profile = Co2Filter::ContentBased.ratings_to_profile(user_ratings: current_user, items: items)
     Co2Filter::ContentBased.filter(user: user_profile, items: items)
+Note that a +Co2Filter::ContentBased::UserProfile+ object like the one returned must be submitted as the user to trigger this shortcut.
+
+Separately run content-based filtering can be combined into the base (hybrid) filter by submitting the results (as a +Co2Filter::Results+ object) to the filter as follows:
+    recommended = Co2Filter.filter(current_user: current_user, other_users: other_users, content_based_results: content_based_results)
 
 === Content-Boosted Collaborative Filtering
 
