@@ -1,6 +1,9 @@
 module Co2Filter
-  def self.filter(current_user: , other_users: , items: nil, user_profile: nil, content_based_results: nil)
+  def self.filter(current_user: nil, other_users: nil, items: nil, user_profile: nil, content_based_results: nil)
+    raise ArgumentError.new("A 'current_user' argument must be provided.") unless current_user
+    raise ArgumentError.new("An 'other_users' argument must be provided.") unless other_users
     raise ArgumentError.new("An 'items' or 'content_based_results' argument must be provided.") unless items || content_based_results
+
     collab = Collaborative.filter(current_user: current_user, other_users: other_users)
     
     if content_based_results && content_based_results.is_a?(Results)
@@ -17,7 +20,11 @@ module Co2Filter
     Results.new(hybrid)
   end
 
-  def self.content_boosted_collaborative_filter(current_user:, other_users:, items:)
+  def self.content_boosted_collaborative_filter(current_user: nil, other_users: nil, items: nil)
+    raise ArgumentError.new("A 'current_user' argument must be provided.") unless current_user
+    raise ArgumentError.new("An 'other_users' argument must be provided.") unless other_users
+    raise ArgumentError.new("An 'items' argument must be provided.") unless items
+
     content_boosted_users = ContentBased.boost_ratings(users: other_users, items: items)
     results = Collaborative.filter(current_user: current_user, other_users: content_boosted_users)
     Results.new(results)

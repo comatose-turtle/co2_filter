@@ -1,7 +1,10 @@
 module Co2Filter::Collaborative
   autoload :Results, 'co2_filter/collaborative/results'
 
-  def self.filter(current_user:, other_users:, measure: :hybrid)
+  def self.filter(current_user: nil, other_users: nil, measure: :hybrid)
+    raise ArgumentError.new("A 'current_user' argument must be provided.") unless current_user
+    raise ArgumentError.new("An 'other_users' argument must be provided.") unless other_users
+
     current_user = Co2Filter::RatingSet.new(current_user) unless current_user.is_a? Co2Filter::RatingSet
     if measure == :euclidean
       processed_users = euclidean(current_user: current_user, other_users: other_users, num_nearest: 30)
@@ -39,7 +42,10 @@ module Co2Filter::Collaborative
     Results.new(item_ratings)
   end
 
-  def self.mean_centered_cosine(current_user:, other_users:, num_nearest:)
+  def self.mean_centered_cosine(current_user: nil, other_users: nil, num_nearest: 30)
+    raise ArgumentError.new("A 'current_user' argument must be provided.") unless current_user
+    raise ArgumentError.new("An 'other_users' argument must be provided.") unless other_users
+
     processed = other_users.map do |key, user2|
       user2 = Co2Filter::RatingSet.new(user2) unless user2.is_a? Co2Filter::RatingSet
       [key, single_cosine(current_user, user2)]
@@ -85,7 +91,10 @@ module Co2Filter::Collaborative
     }
   end
 
-  def self.euclidean(current_user:, other_users:, num_nearest:, range:0)
+  def self.euclidean(current_user: nil, other_users: nil, num_nearest: 30, range:0)
+    raise ArgumentError.new("A 'current_user' argument must be provided.") unless current_user
+    raise ArgumentError.new("An 'other_users' argument must be provided.") unless other_users
+
     if range == 0
       lowest = nil
       highest = nil
