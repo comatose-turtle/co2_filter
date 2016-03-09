@@ -1,12 +1,22 @@
 module Co2Filter::Collaborative
   autoload :Results, 'co2_filter/collaborative/results'
 
-  def self.filter(current_user: nil, other_users: nil, measure: :hybrid)
+  def self.filter(current_user: nil, other_users: nil, measure: :hybrid, similarity_coefficients: nil)
     raise ArgumentError.new("A 'current_user' argument must be provided.") unless current_user
     raise ArgumentError.new("An 'other_users' argument must be provided.") unless other_users
 
     current_user = Co2Filter::RatingSet.new(current_user) unless current_user.is_a? Co2Filter::RatingSet
-    if measure == :euclidean
+    if similarity_coefficients.is_a? Hash
+      processed_users = other_users.inject({}) do |processed, (user_id, ratings)|
+        ratings = Co2Filter::RatingSet.new(ratings) unless ratings.is_a? Co2Filter::RatingSet
+        processed[user_id] = {
+          ratings: ratings,
+          mean: ratings.mean,
+          coefficient: similarity_coefficients[user_id]
+        } if similarity_coefficients[user_id]
+        processed
+      end
+    elsif measure == :euclidean
       processed_users = euclidean(current_user: current_user, other_users: other_users, num_nearest: 30)
     elsif measure == :cosine
       processed_users = mean_centered_cosine(current_user: current_user, other_users: other_users, num_nearest: 30)

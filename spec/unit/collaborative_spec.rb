@@ -105,56 +105,92 @@ describe Co2Filter::Collaborative do
           Co2Filter::RatingSet.new(other_users[107])
       ]}
 
-      before(:each) do
-        allow(Co2Filter::Collaborative).to receive(:mean_centered_cosine) {
-          {
-              1 => {coefficient: 0.5, mean: 2.5, ratings: sample_ratings[0]},
-              2 => {coefficient: 0.1, mean: 2.5, ratings: sample_ratings[1]},
-              3 => {coefficient: 0.75, mean: 2.5, ratings: sample_ratings[2]},
-              4 => {coefficient: 1.0, mean: 2.5, ratings: sample_ratings[3]},
-              5 => {coefficient: 0.3, mean: 2.5, ratings: sample_ratings[4]},
-              6 => {coefficient: 0.9, mean: 2.5, ratings: sample_ratings[5]},
-              7 => {coefficient: 0.55, mean: 2.5, ratings: sample_ratings[6]},
-              8 => {coefficient: 0, mean: 2.5, ratings: sample_ratings[7]}
+      def mock_cosine(with_content=false)
+        if(with_content)
+          allow(Co2Filter::Collaborative).to receive(:mean_centered_cosine) {
+            {
+                1 => {coefficient: 0.5, mean: 2.5, ratings: sample_ratings[0]},
+                2 => {coefficient: 0.1, mean: 2.5, ratings: sample_ratings[1]},
+                3 => {coefficient: 0.75, mean: 2.5, ratings: sample_ratings[2]},
+                4 => {coefficient: 1.0, mean: 2.5, ratings: sample_ratings[3]},
+                5 => {coefficient: 0.3, mean: 2.5, ratings: sample_ratings[4]},
+                6 => {coefficient: 0.9, mean: 2.5, ratings: sample_ratings[5]},
+                7 => {coefficient: 0.55, mean: 2.5, ratings: sample_ratings[6]},
+                8 => {coefficient: 0, mean: 2.5, ratings: sample_ratings[7]}
+            }
           }
-        }
+        else
+          allow(Co2Filter::Collaborative).to receive(:mean_centered_cosine) {{}}
+        end
+      end
 
-        allow(Co2Filter::Collaborative).to receive(:euclidean) {
-          {
-              1 => {coefficient: 1, mean: 2.5, ratings: sample_ratings[0]},
-              2 => {coefficient: 0.5, mean: 2.5, ratings: sample_ratings[1]},
-              3 => {coefficient: 0.25, mean: 2.5, ratings: sample_ratings[2]},
-              4 => {coefficient: 0.01, mean: 2.5, ratings: sample_ratings[3]},
-              5 => {coefficient: 0.33, mean: 2.5, ratings: sample_ratings[4]},
-              6 => {coefficient: 0.2, mean: 2.5, ratings: sample_ratings[5]},
-              7 => {coefficient: 0.7, mean: 2.5, ratings: sample_ratings[6]},
-              8 => {coefficient: 0.5, mean: 2.5, ratings: sample_ratings[7]}
+      def mock_euclidean(with_content=false)
+        if(with_content)
+          allow(Co2Filter::Collaborative).to receive(:euclidean) {
+            {
+                1 => {coefficient: 1, mean: sample_ratings[0].mean, ratings: sample_ratings[0]},
+                2 => {coefficient: 0.5, mean: sample_ratings[1].mean, ratings: sample_ratings[1]},
+                3 => {coefficient: 0.25, mean: sample_ratings[2].mean, ratings: sample_ratings[2]},
+                4 => {coefficient: 0.01, mean: sample_ratings[3].mean, ratings: sample_ratings[3]},
+                5 => {coefficient: 0.33, mean: sample_ratings[4].mean, ratings: sample_ratings[4]},
+                6 => {coefficient: 0.2, mean: sample_ratings[5].mean, ratings: sample_ratings[5]},
+                7 => {coefficient: 0.7, mean: sample_ratings[6].mean, ratings: sample_ratings[6]},
+                8 => {coefficient: 0.5, mean: sample_ratings[7].mean, ratings: sample_ratings[7]}
+            }
           }
-        }
+        else
+          allow(Co2Filter::Collaborative).to receive(:euclidean) {{}}
+        end
       end
 
       it 'can accept cosine' do
+        mock_cosine(true)
+        mock_euclidean
         result = Co2Filter::Collaborative.filter(current_user: user1, other_users: other_users, measure: :cosine)
         expect(result).to be_a(Co2Filter::Collaborative::Results)
-        expect(result.ids_by_rating).to eq([7, 8, 6])
         expect(Co2Filter::Collaborative).not_to have_received(:euclidean)
         expect(Co2Filter::Collaborative).to have_received(:mean_centered_cosine)
+        expect(result.ids_by_rating).to eq([7, 8, 6])
       end
 
       it 'can accept euclidean' do
+        mock_cosine
+        mock_euclidean(true)
         result = Co2Filter::Collaborative.filter(current_user: user1, other_users: other_users, measure: :euclidean)
         expect(result).to be_a(Co2Filter::Collaborative::Results)
-        expect(result.ids_by_rating).to eq([9, 7, 6, 8])
         expect(Co2Filter::Collaborative).to have_received(:euclidean)
         expect(Co2Filter::Collaborative).not_to have_received(:mean_centered_cosine)
+        expect(result.ids_by_rating).to eq([7, 6, 9, 8])
       end
 
       it 'can accept hybrid' do
+        mock_cosine(true)
+        mock_euclidean(true)
         result = Co2Filter::Collaborative.filter(current_user: user1, other_users: other_users, measure: :hybrid)
         expect(result).to be_a(Co2Filter::Collaborative::Results)
-        expect(result.ids_by_rating).to eq([9, 7, 6, 8])
         expect(Co2Filter::Collaborative).to have_received(:euclidean)
         expect(Co2Filter::Collaborative).to have_received(:mean_centered_cosine)
+        expect(result.ids_by_rating).to eq([7, 9, 6, 8])
+      end
+
+      it 'can accept prebuilt user similarity coefficients' do
+        mock_cosine
+        mock_euclidean
+        similarity_coefficients = {
+          100 => 1,
+          101 => 0.5,
+          102 => 0.25,
+          103 => 0.01,
+          104 => 0.33,
+          105 => 0.2,
+          106 => 0.7,
+          107 => 0.5
+        }
+        result = Co2Filter::Collaborative.filter(current_user: user1, other_users: other_users, similarity_coefficients: similarity_coefficients)
+        expect(result).to be_a(Co2Filter::Collaborative::Results)
+        expect(Co2Filter::Collaborative).not_to have_received(:euclidean)
+        expect(Co2Filter::Collaborative).not_to have_received(:mean_centered_cosine)
+        expect(result.ids_by_rating).to eq([7, 6, 9, 8])
       end
     end
   end

@@ -70,6 +70,8 @@ Attribute strength refers to a situation where attributes are applied in varying
 
 === Using Individual Filters
 
+==== Collaborative Filter
+
 To implement only the collaborative filter, just use:
     Co2Filter::Collaborative.filter(current_user: current_user, other_users: other_users)
 
@@ -77,7 +79,18 @@ The collaborative filter accepts an argument that determines by what process use
     Co2Filter::Collaborative.filter(current_user: current_user, other_users: other_users, measure: :euclidean)
 If is assigned to +:euclidean+, users will be considered similar based on the Euclidean distance of their rating sets.  This is a straight-forward comparison that makes sense to most people, but may overlook some subtleties.
 If assigned to +:cosine+, users' similarity is determined by a mean-based cosine coefficient.  This essentially means that the curve formed by users' rating sets is compared by shape to others'.  This technique is more reliable in some cases, but suffers considerably more in sparse data sets.
-+:hybrid+ is the default measure, which represents an average of the above two measures.  Inherently, this makes it slower, but averaging may prove more reliable overall.  It may also smooth over the uniquely accurate aspects of each technique, lowering opportunities for a surprisingly good recommendation (or surprisingly bad).
++:hybrid+ is the default measure, which represents an average of the above two measures.  Inherently, this makes it slower, but averaging may prove more reliable overall.  It unfortunately may also smooth over the uniquely accurate aspects of each technique, lowering opportunities for a surprisingly good recommendation (or surprisingly bad).
+
+You may also feed precalculated similarity coefficients into the filter using the +similarity_coefficients+ argument:
+    similarity_coefficients = {
+        'user1' => 0.56,
+        'user2' => 0.8,
+        'user3' => -0.4
+        # ...
+    }
+    Co2Filter::Collaborative.filter(current_user: current_user, other_users: other_users, similarity_coefficients: similarity_coefficients)
+
+==== Content-Based Filter
 
 To implement only the content-based filter, use:
     Co2Filter::ContentBased.filter(user: current_user, items: items)
