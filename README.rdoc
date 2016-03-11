@@ -2,14 +2,15 @@
 
 Co2Filter is a combination Collaborative and Content-based filtering gem, with optional access to key points in the logic chain for adding your own calculations or storing them for later.
 
-Collaborative filtering recommends based on the ratings of other users and their similarity to you.
-Content-based filtering recommends based on the attributes of items and your opinions of them.
+<b>Collaborative filtering</b> recommends based on the ratings of other users and their similarity to you.
+
+<b>Content-based filtering</b> recommends based on the attributes of items and your opinions of them.
 
 Both strategies will return a predicted rating for each item still unrated.  They can each be used alone with this gem, but they can also be combined via either an averaging of the two predicted user ratings or the content-boosted collaborative filtering technique.
 
-Content-boosted collaborative filtering first applies content-based filtering to fill out a sparse user rating set, then applies collaborative filtering on the resulting dense data.
+<b>Content-boosted collaborative filtering</b> first applies content-based filtering to fill out a sparse user rating set, then applies collaborative filtering on the resulting dense data.
 
-Rating ranges are irrelevant to the algorithm, as rating averages are the key point of reference.  Feel free to use whatever works best for your app.  (But be warned that this means there is a chance of predicting slightly outside of the actual range.)
+Rating ranges are mostly irrelevant to the algorithm, as rating averages are the key point of reference.  Feel free to use whatever works best for your app.  (But be warned that this means there is a chance of predicting slightly outside of the actual range.)
 
 == Installation
 
@@ -77,8 +78,10 @@ To implement only the collaborative filter, just use:
 
 The collaborative filter accepts an argument that determines by what process users are determined to be similar, called +measure+:
     Co2Filter::Collaborative.filter(current_user: current_user, other_users: other_users, measure: :euclidean)
-If is assigned to +:euclidean+, users will be considered similar based on the Euclidean distance of their rating sets.  This is a straight-forward comparison that makes sense to most people, but may overlook some subtleties.
-If assigned to +:cosine+, users' similarity is determined by a mean-based cosine coefficient.  This essentially means that the curve formed by users' rating sets is compared by shape to others'.  This technique is more reliable in some cases, but suffers considerably more in sparse data sets.
++:euclidean+ means that users will be considered similar based on the Euclidean distance of their rating sets.  This is a straight-forward comparison that makes sense to most people, but may overlook some subtleties.
+
++:cosine+ means that users' similarity is determined by a mean-based cosine coefficient.  This essentially means that the curve formed by users' rating sets is compared by shape to others'.  This technique is more reliable in some cases, but suffers considerably more in sparse data sets.
+
 +:hybrid+ is the default measure, which represents an average of the above two measures.  Inherently, this makes it slower, but averaging may prove more reliable overall.  It unfortunately may also smooth over the uniquely accurate aspects of each technique, lowering opportunities for a surprisingly good recommendation (or surprisingly bad).
 
 You may also feed precalculated similarity coefficients into the filter using the +similarity_coefficients+ argument:
@@ -89,6 +92,8 @@ You may also feed precalculated similarity coefficients into the filter using th
         # ...
     }
     Co2Filter::Collaborative.filter(current_user: current_user, other_users: other_users, similarity_coefficients: similarity_coefficients)
+
+Note that, in this case, you ought to provide a hash of coefficients that is already trimmed by some kind of nearest-neighbor calculation.  A set of coefficients that is not trimmed will result in an excess of calculations for what is probably many irrelevantly small coefficients.
 
 ==== Content-Based Filter
 
